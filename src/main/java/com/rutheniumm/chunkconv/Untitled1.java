@@ -29,7 +29,8 @@ import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.registries.RegistryObject;
 import org.slf4j.Logger;
-
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.*;
@@ -37,6 +38,7 @@ import java.util.*;
 // The value here should match an entry in the META-INF/mods.toml file
 @Mod(Untitled1.MODID)
 public class Untitled1 {
+    private final ExecutorService executor = Executors.newFixedThreadPool(4); // Adjust the number of threads as needed
 
     // Define mod id in a common place for everything to reference
     public static final String MODID = "chunkconv";
@@ -112,15 +114,24 @@ public class Untitled1 {
 // Retrieve block data for each chunk and write to separate JSON files
             int chunkNum = 1;
             for (BlockPos chunkPos : chunkPositions) {
-                Map<String, Map<String, String>> chunkBlocks = BlockCollector.getBlocksInChunkRadius(player.level(), chunkPos);
-                String json = gson.toJson(chunkBlocks);
-                String fileName = "chunk_data" + chunkNum + ".json";
-                try (FileWriter writer = new FileWriter(fileName)) {
-                    writer.write(json);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+                int finalChunkNum = chunkNum;
+                executor.execute(() -> {
+                    Map<String, Map<String, String>> chunkBlocks = BlockCollector.getBlocksInChunkRadius(player.level(), chunkPos);
+                    String json = gson.toJson(chunkBlocks);
+                    String fileName = "chunk_data" + finalChunkNum + ".json";
+                    try (FileWriter writer = new FileWriter(fileName)) {
+                        writer.write(json);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                });
                 chunkNum++;
+
+                try {
+                    Thread.sleep(100); // Adjust the delay (in milliseconds) between chunks as needed
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                }
             }
         }
     }

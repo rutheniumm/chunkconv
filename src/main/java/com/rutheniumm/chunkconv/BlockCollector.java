@@ -1,12 +1,16 @@
 package com.rutheniumm.chunkconv;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.data.models.blockstates.VariantProperties;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Rotation;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.Property;
 import net.minecraft.world.level.block.state.BlockBehaviour.Properties;
+import org.checkerframework.checker.units.qual.A;
+import org.joml.Quaternionf;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -40,7 +44,11 @@ public class BlockCollector {
                         mapData.put("x", String.valueOf(x));
                         mapData.put("y", String.valueOf(y));
                         mapData.put("z", String.valueOf(z));
-                        mapData.put("blockName", blockState.getBlock().toString());
+                        mapData.put("n", blockState.getBlock().toString());
+                       if (blockState.hasProperty(BlockStateProperties.HORIZONTAL_FACING)) {
+                           Direction facing = blockState.getValue(BlockStateProperties.HORIZONTAL_FACING);
+                           mapData.put("facing", facing.getName());
+                       }
 
                         String key = String.format("%s,%s,%s", x, y, z);
                         blockData.put(key, mapData);
